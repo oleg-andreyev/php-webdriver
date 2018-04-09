@@ -42,16 +42,22 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
      * @var UselessFileDetector
      */
     protected $fileDetector;
+    /**
+     * @var bool
+     */
+    protected $w3cCompliant;
 
     /**
      * @param RemoteExecuteMethod $executor
      * @param string $id
+     * @param bool $w3cCompliant
      */
-    public function __construct(RemoteExecuteMethod $executor, $id)
+    public function __construct(RemoteExecuteMethod $executor, $id, $w3cCompliant = false)
     {
         $this->executor = $executor;
         $this->id = $id;
         $this->fileDetector = new UselessFileDetector();
+        $this->w3cCompliant = $w3cCompliant;
     }
 
     /**
@@ -94,17 +100,15 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
      */
     public function findElement(WebDriverBy $by)
     {
-        $params = [
-            'using' => $by->getMechanism(),
-            'value' => $by->getValue(),
-            ':id' => $this->id,
-        ];
+        $params = JsonWireCompat::getUsing($by, $this->w3cCompliant);
+        $params[':id'] = $this->id;
+
         $raw_element = $this->executor->execute(
             DriverCommand::FIND_CHILD_ELEMENT,
             $params
         );
 
-        return $this->newElement($raw_element['ELEMENT']);
+        return $this->newElement(JsonWireCompat::getElement($raw_element));
     }
 
     /**
@@ -117,11 +121,8 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
      */
     public function findElements(WebDriverBy $by)
     {
-        $params = [
-            'using' => $by->getMechanism(),
-            'value' => $by->getValue(),
-            ':id' => $this->id,
-        ];
+        $params = JsonWireCompat::getUsing($by, $this->w3cCompliant);
+        $params[':id'] = $this->id;
         $raw_elements = $this->executor->execute(
             DriverCommand::FIND_CHILD_ELEMENTS,
             $params
@@ -129,7 +130,7 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
 
         $elements = [];
         foreach ($raw_elements as $raw_element) {
-            $elements[] = $this->newElement($raw_element['ELEMENT']);
+            $elements[] = $this->newElement(JsonWireCompat::getElement($raw_element));
         }
 
         return $elements;
@@ -325,17 +326,33 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
     {
         $local_file = $this->fileDetector->getLocalFile($value);
         if ($local_file === null) {
-            $params = [
-                'value' => WebDriverKeys::encode($value),
-                ':id' => $this->id,
-            ];
+            if ($this->w3cCompliant) {
+                $params = [
+                    'text' => (string) $value,
+                    ':id' => $this->id,
+                ];
+            } else {
+                $params = [
+                    'value' => WebDriverKeys::encode($value, $this->w3cCompliant),
+                    ':id' => $this->id,
+                ];
+            }
             $this->executor->execute(DriverCommand::SEND_KEYS_TO_ELEMENT, $params);
         } else {
             $remote_path = $this->upload($local_file);
-            $params = [
-                'value' => WebDriverKeys::encode($remote_path),
-                ':id' => $this->id,
-            ];
+
+            if ($this->w3cCompliant) {
+                $params = [
+                    'text' => $remote_path,
+                    ':id' => $this->id,
+                ];
+            } else {
+                $params = [
+                    'value' => WebDriverKeys::encode($remote_path, $this->w3cCompliant),
+                    ':id' => $this->id,
+                ];
+            }
+
             $this->executor->execute(DriverCommand::SEND_KEYS_TO_ELEMENT, $params);
         }
 
@@ -371,6 +388,18 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
      */
     public function submit()
     {
+        if ($this->w3cCompliant) {
+            $this->executor->execute(DriverCommand::EXECUTE_SCRIPT, [
+                'script' => sprintf('return arguments[0]%s.submit();', 'form' === $this->getTagName() ? '' : '.form'),
+                'args' => [[JsonWireCompat::WEB_DRIVER_ELEMENT_IDENTIFIER => $this->id]],
+            ]);
+            // Wait for the new page to be ready
+            // TODO: wait for <html> to be ready, or use another more elegant way
+            usleep(10000);
+
+            return $this;
+        }
+
         $this->executor->execute(
             DriverCommand::SUBMIT_ELEMENT,
             [':id' => $this->id]
@@ -412,7 +441,7 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
      */
     protected function newElement($id)
     {
-        return new static($this->executor, $id);
+        return new static($this->executor, $id, $this->w3cCompliant);
     }
 
     /**

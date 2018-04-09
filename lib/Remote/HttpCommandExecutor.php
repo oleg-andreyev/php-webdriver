@@ -138,6 +138,13 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
         DriverCommand::TOUCH_UP => ['method' => 'POST', 'url' => '/session/:sessionId/touch/up'],
     ];
     /**
+     * @var array Will be merged with $commands
+     */
+    protected static $w3cCompliantCommands = [
+        DriverCommand::EXECUTE_SCRIPT => ['method' => 'POST', 'url' => '/session/:sessionId/execute/sync'],
+        DriverCommand::EXECUTE_ASYNC_SCRIPT => ['method' => 'POST', 'url' => '/session/:sessionId/execute/async'],
+    ];
+    /**
      * @var string
      */
     protected $url;
@@ -145,15 +152,23 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
      * @var resource
      */
     protected $curl;
+    /**
+     * @var bool
+     */
+    protected $w3cCompliant;
 
     /**
      * @param string $url
      * @param string|null $http_proxy
      * @param int|null $http_proxy_port
+     * @param bool $w3c_compliant
      */
-    public function __construct($url, $http_proxy = null, $http_proxy_port = null)
+    public function __construct($url, $http_proxy = null, $http_proxy_port = null, $w3c_compliant = false)
     {
+        self::$w3cCompliantCommands = array_merge(self::$commands, self::$w3cCompliantCommands);
+
         $this->url = $url;
+        $this->w3cCompliant = $w3c_compliant;
         $this->curl = curl_init();
 
         if (!empty($http_proxy)) {
@@ -230,7 +245,7 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
             throw new InvalidArgumentException($command->getName() . ' is not a valid command.');
         }
 
-        $raw = self::$commands[$command->getName()];
+        $raw = $this->w3cCompliant ? self::$w3cCompliantCommands[$command->getName()] : self::$commands[$command->getName()];
         $http_method = $raw['method'];
         $url = $raw['url'];
         $url = str_replace(':sessionId', $command->getSessionID(), $url);
@@ -242,7 +257,7 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
             }
         }
 
-        if ($params && is_array($params) && $http_method !== 'POST') {
+        if ($params && \is_array($params) && $http_method !== 'POST') {
             throw new BadMethodCallException(sprintf(
                 'The http method called for %s is %s but it has to be POST' .
                 ' if you want to pass the JSON params %s',
@@ -261,7 +276,7 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
             curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, $http_method);
         }
 
-        if (in_array($http_method, ['POST', 'PUT'])) {
+        if (\in_array($http_method, ['POST', 'PUT'])) {
             // Disable sending 'Expect: 100-Continue' header, as it is causing issues with eg. squid proxy
             // https://tools.ietf.org/html/rfc7231#section-5.1.1
             curl_setopt($this->curl, CURLOPT_HTTPHEADER, array_merge(static::DEFAULT_HTTP_HEADERS, ['Expect:']));
@@ -270,9 +285,8 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
         }
 
         $encoded_params = null;
-
-        if ($http_method === 'POST' && $params && is_array($params)) {
-            $encoded_params = json_encode($params);
+        if ($http_method === 'POST') {
+            $encoded_params = $params && \is_array($params) ? json_encode($params) : '{}';
         }
 
         curl_setopt($this->curl, CURLOPT_POSTFIELDS, $encoded_params);
@@ -285,7 +299,7 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
                 $http_method,
                 $url
             );
-            if ($params && is_array($params)) {
+            if ($params && \is_array($params)) {
                 $msg .= sprintf(' with params: %s', json_encode($params));
             }
 
@@ -307,22 +321,34 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
         }
 
         $value = null;
-        if (is_array($results) && array_key_exists('value', $results)) {
+        if (\is_array($results) && array_key_exists('value', $results)) {
             $value = $results['value'];
         }
 
         $message = null;
-        if (is_array($value) && array_key_exists('message', $value)) {
+        if (\is_array($value) && array_key_exists('message', $value)) {
             $message = $value['message'];
         }
 
         $sessionId = null;
-        if (is_array($results) && array_key_exists('sessionId', $results)) {
+        if (\is_array($value) && array_key_exists('sessionId', $value)) {
+            // W3C's WebDriver
+            $sessionId = $value['sessionId'];
+        } elseif (\is_array($results) && array_key_exists('sessionId', $results)) {
+            // Legacy JsonWire
             $sessionId = $results['sessionId'];
         }
 
+        // TODO: handle status codes
+        // @see https://w3c.github.io/webdriver/webdriver-spec.html#handling-errors
+        if (isset($value['error'])) {
+            // W3C's WebDriver
+            WebDriverException::throwException($value['error'], $message, $results, true);
+        }
+
         $status = isset($results['status']) ? $results['status'] : 0;
-        if ($status != 0) {
+        if ($status !== 0) {
+            // Legacy JsonWire
             WebDriverException::throwException($status, $message, $results);
         }
 
