@@ -67,7 +67,7 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
      * @param HttpCommandExecutor $commandExecutor
      * @param string $sessionId
      * @param WebDriverCapabilities|null $capabilities
-     * @param bool $w3cCompliant Set to false to follow the legacy JsonWire protocol, and to true for the new W3C WebDriver spec
+     * @param bool $w3cCompliant false to use the legacy JsonWire protocol, true for the W3C WebDriver spec
      */
     protected function __construct(
         HttpCommandExecutor $commandExecutor,
@@ -94,7 +94,7 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
      * @param string|null $http_proxy The proxy to tunnel requests to the remote Selenium WebDriver through
      * @param int|null $http_proxy_port The proxy port to tunnel requests to the remote Selenium WebDriver through
      * @param DesiredCapabilities $required_capabilities The required capabilities
-     * @param bool $w3c_compliant Set to false to follow the legacy JsonWire protocol, and to true for the new W3C WebDriver spec
+     * @param bool $w3c_compliant false to use the legacy JsonWire protocol, true for the W3C WebDriver spec
      *
      * @return static
      */
@@ -151,11 +151,11 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
      * @param string $session_id The existing session id
      * @param int|null $connection_timeout_in_ms Set timeout for the connect phase to remote Selenium WebDriver server
      * @param int|null $request_timeout_in_ms Set the maximum time of a request to remote Selenium WebDriver server
-     * @param bool $w3c_compliant Set to false to follow the legacy JsonWire protocol, and to true for the new W3C WebDriver spec
+     * @param bool $w3c_compliant false to use the legacy JsonWire protocol, true for the W3C WebDriver spec
      * @return static
      */
     public static function createBySessionID(
-        $session_id ,
+        $session_id,
         $selenium_server_url = 'http://localhost:4444/wd/hub',
         $connection_timeout_in_ms = null,
         $request_timeout_in_ms = null,
@@ -532,8 +532,11 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
      * @param bool $w3c_compliant
      * @return array
      */
-    public static function getAllSessions($selenium_server_url = 'http://localhost:4444/wd/hub', $timeout_in_ms = 30000, $w3c_compliant = false)
-    {
+    public static function getAllSessions(
+        $selenium_server_url = 'http://localhost:4444/wd/hub',
+        $timeout_in_ms = 30000,
+        $w3c_compliant = false
+    ) {
         $executor = new HttpCommandExecutor($selenium_server_url, null, null, $w3c_compliant);
         $executor->setConnectionTimeout($timeout_in_ms);
 
@@ -583,7 +586,9 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
         $args = [];
         foreach ($arguments as $key => $value) {
             if ($value instanceof WebDriverElement) {
-                $args[$key] = [$this->w3cCompliant ? JsonWireCompat::WEB_DRIVER_ELEMENT_IDENTIFIER : 'ELEMENT' => $value->getID()];
+                $args[$key] = [
+                    $this->w3cCompliant ? JsonWireCompat::WEB_DRIVER_ELEMENT_IDENTIFIER : 'ELEMENT' => $value->getID(),
+                ];
             } else {
                 if (\is_array($value)) {
                     $value = $this->prepareScriptArguments($value);

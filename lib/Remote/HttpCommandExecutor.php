@@ -245,7 +245,12 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
             throw new InvalidArgumentException($command->getName() . ' is not a valid command.');
         }
 
-        $raw = $this->w3cCompliant ? self::$w3cCompliantCommands[$command->getName()] : self::$commands[$command->getName()];
+        if ($this->w3cCompliant) {
+            $raw = self::$w3cCompliantCommands[$command->getName()];
+        } else {
+            $raw = self::$commands[$command->getName()];
+        }
+
         $http_method = $raw['method'];
         $url = $raw['url'];
         $url = str_replace(':sessionId', $command->getSessionID(), $url);
