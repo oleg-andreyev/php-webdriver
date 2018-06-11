@@ -37,7 +37,7 @@ For the functional tests you must first [download](http://selenium-release.stora
 the selenium standalone server, start the local PHP server which will serve the test pages and then run the `functional`
 test suite:
 
-    java -jar selenium-server-standalone-2.53.1.jar -log selenium.log &
+    java -jar selenium-server-standalone-3.12.0.jar -log selenium.log &
     php -S localhost:8000 -t tests/functional/web/ &
     ./vendor/bin/phpunit --testsuite functional
     

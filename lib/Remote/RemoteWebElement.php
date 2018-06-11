@@ -333,7 +333,7 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
                 ];
             } else {
                 $params = [
-                    'value' => WebDriverKeys::encode($value, $this->w3cCompliant),
+                    'value' => WebDriverKeys::encode($value),
                     ':id' => $this->id,
                 ];
             }
@@ -348,7 +348,7 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
                 ];
             } else {
                 $params = [
-                    'value' => WebDriverKeys::encode($remote_path, $this->w3cCompliant),
+                    'value' => WebDriverKeys::encode($remote_path),
                     ':id' => $this->id,
                 ];
             }

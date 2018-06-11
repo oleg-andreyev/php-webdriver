@@ -105,9 +105,10 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
         $request_timeout_in_ms = null,
         $http_proxy = null,
         $http_proxy_port = null,
-        DesiredCapabilities $required_capabilities = null,
-        $w3c_compliant = false
+        DesiredCapabilities $required_capabilities = null
     ) {
+        // BC layer to not break the method signature
+        $w3c_compliant = func_num_args() > 7 ? func_get_arg(7) : false;
         $selenium_server_url = preg_replace('#/+$#', '', $selenium_server_url);
 
         $desired_capabilities = self::castToDesiredCapabilitiesObject($desired_capabilities);
@@ -158,9 +159,10 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
         $session_id,
         $selenium_server_url = 'http://localhost:4444/wd/hub',
         $connection_timeout_in_ms = null,
-        $request_timeout_in_ms = null,
-        $w3c_compliant = false
+        $request_timeout_in_ms = null
     ) {
+        // BC layer to not break the method signature
+        $w3c_compliant = func_num_args() > 3 ? func_get_arg(3) : false;
         $executor = new HttpCommandExecutor($selenium_server_url, null, null, $w3c_compliant);
         if ($connection_timeout_in_ms !== null) {
             $executor->setConnectionTimeout($connection_timeout_in_ms);
@@ -532,11 +534,9 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
      * @param bool $w3c_compliant
      * @return array
      */
-    public static function getAllSessions(
-        $selenium_server_url = 'http://localhost:4444/wd/hub',
-        $timeout_in_ms = 30000,
-        $w3c_compliant = false
-    ) {
+    public static function getAllSessions($selenium_server_url = 'http://localhost:4444/wd/hub', $timeout_in_ms = 30000) {
+        // BC layer to not break the method signature
+        $w3c_compliant = func_num_args() > 2 ? func_get_arg(2) : false;
         $executor = new HttpCommandExecutor($selenium_server_url, null, null, $w3c_compliant);
         $executor->setConnectionTimeout($timeout_in_ms);
 
