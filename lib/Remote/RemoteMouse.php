@@ -27,13 +27,18 @@ class RemoteMouse implements WebDriverMouse
      * @var RemoteExecuteMethod
      */
     private $executor;
+    /**
+     * @var bool
+     */
+    private $w3cCompliant;
 
     /**
      * @param RemoteExecuteMethod $executor
      */
-    public function __construct(RemoteExecuteMethod $executor)
+    public function __construct(RemoteExecuteMethod $executor, $w3cCompliant = false)
     {
         $this->executor = $executor;
+        $this->w3cCompliant = $w3cCompliant;
     }
 
     /**
@@ -73,6 +78,13 @@ class RemoteMouse implements WebDriverMouse
      */
     public function doubleClick(WebDriverCoordinates $where = null)
     {
+        if ($this->w3cCompliant) {
+            $this->click($where);
+            $this->click($where);
+
+            return $this;
+        }
+
         $this->moveIfNeeded($where);
         $this->executor->execute(DriverCommand::DOUBLE_CLICK);
 
@@ -104,6 +116,26 @@ class RemoteMouse implements WebDriverMouse
         $x_offset = null,
         $y_offset = null
     ) {
+        if ($this->w3cCompliant) {
+            $params = [
+                'type' => 'pointer',
+                'subtype' => 'mouse',
+                'input source' => 'pointerMove'
+            ];
+
+            if ($x_offset !== null) {
+                $params['x'] = $x_offset;
+            }
+
+            if (null !== $y_offset) {
+                $params['y'] = $x_offset;
+            }
+
+            $this->executeAction($params);
+
+            return $this;
+        }
+
         $params = [];
         if ($where !== null) {
             $params['element'] = $where->getAuxiliary();
@@ -114,6 +146,7 @@ class RemoteMouse implements WebDriverMouse
         if ($y_offset !== null) {
             $params['yoffset'] = $y_offset;
         }
+
         $this->executor->execute(DriverCommand::MOVE_TO, $params);
 
         return $this;
@@ -140,5 +173,10 @@ class RemoteMouse implements WebDriverMouse
         if ($where) {
             $this->mouseMove($where);
         }
+    }
+
+    private function executeAction($action)
+    {
+
     }
 }

@@ -63,8 +63,8 @@ class RemoteWebElementTest extends WebDriverTestCase
 
         $elementLocation = $element->getLocation();
         $this->assertInstanceOf(WebDriverPoint::class, $elementLocation);
-        $this->assertSame(33, $elementLocation->getX());
-        $this->assertSame(500, $elementLocation->getY());
+        $this->assertSame($this->w3cCompliant ? 33. : 33, $elementLocation->getX());
+        $this->assertSame($this->w3cCompliant ? 500. : 500, $elementLocation->getY());
     }
 
     /**
@@ -78,8 +78,8 @@ class RemoteWebElementTest extends WebDriverTestCase
 
         $elementSize = $element->getSize();
         $this->assertInstanceOf(WebDriverDimension::class, $elementSize);
-        $this->assertSame(333, $elementSize->getWidth());
-        $this->assertSame(66, $elementSize->getHeight());
+        $this->assertSame($this->w3cCompliant ? 333. : 333, $elementSize->getWidth());
+        $this->assertSame($this->w3cCompliant ? 66. : 66, $elementSize->getHeight());
     }
 
     /**
@@ -272,6 +272,10 @@ class RemoteWebElementTest extends WebDriverTestCase
      */
     public function testShouldCompareEqualsElement()
     {
+        if ($this->w3cCompliant) {
+            $this->markTestSkipped('"equals" is not supported by the W3C specification');
+        }
+
         $this->driver->get($this->getTestPageUrl('index.html'));
 
         $firstElement = $this->driver->findElement(WebDriverBy::cssSelector('ul.list'));

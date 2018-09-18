@@ -15,6 +15,7 @@
 
 namespace Facebook\WebDriver\Remote;
 
+use Facebook\WebDriver\Exception\UnsupportedOperationException;
 use Facebook\WebDriver\Exception\WebDriverException;
 use Facebook\WebDriver\Interactions\Internal\WebDriverCoordinates;
 use Facebook\WebDriver\Internal\WebDriverLocatable;
@@ -339,16 +340,15 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
             }
             $this->executor->execute(DriverCommand::SEND_KEYS_TO_ELEMENT, $params);
         } else {
-            $remote_path = $this->upload($local_file);
 
             if ($this->w3cCompliant) {
                 $params = [
-                    'text' => $remote_path,
+                    'text' => $local_file,
                     ':id' => $this->id,
                 ];
             } else {
                 $params = [
-                    'value' => WebDriverKeys::encode($remote_path),
+                    'value' => WebDriverKeys::encode($this->upload($local_file)),
                     ':id' => $this->id,
                 ];
             }
@@ -390,7 +390,8 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
     {
         if ($this->w3cCompliant) {
             $this->executor->execute(DriverCommand::EXECUTE_SCRIPT, [
-                'script' => sprintf('return arguments[0]%s.submit();', 'form' === $this->getTagName() ? '' : '.form'),
+                // cannot call the submit method directly in case an input of this form is named "submit"
+                'script' => sprintf('return Object.getPrototypeOf(%1$s).submit.call(%1$s);', 'form' === $this->getTagName() ? 'arguments[0]' : 'arguments[0].form'),
                 'args' => [[JsonWireCompat::WEB_DRIVER_ELEMENT_IDENTIFIER => $this->id]],
             ]);
             // Wait for the new page to be ready
@@ -426,6 +427,10 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
      */
     public function equals(WebDriverElement $other)
     {
+        if ($this->w3cCompliant) {
+            throw new UnsupportedOperationException('"elementEquals" is not supported by the W3C specification');
+        }
+
         return $this->executor->execute(DriverCommand::ELEMENT_EQUALS, [
             ':id' => $this->id,
             ':other' => $other->getID(),

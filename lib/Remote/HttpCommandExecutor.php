@@ -141,8 +141,19 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
      * @var array Will be merged with $commands
      */
     protected static $w3cCompliantCommands = [
+        DriverCommand::ACCEPT_ALERT => ['method' => 'POST', 'url' => '/session/:sessionId/alert/accept'],
+        DriverCommand::DISMISS_ALERT => ['method' => 'POST', 'url' => '/session/:sessionId/alert/dismiss'],
         DriverCommand::EXECUTE_SCRIPT => ['method' => 'POST', 'url' => '/session/:sessionId/execute/sync'],
         DriverCommand::EXECUTE_ASYNC_SCRIPT => ['method' => 'POST', 'url' => '/session/:sessionId/execute/async'],
+        DriverCommand::GET_CURRENT_WINDOW_HANDLE => ['method' => 'GET', 'url' => '/session/:sessionId/window'],
+        DriverCommand::GET_ELEMENT_LOCATION => ['method' => 'GET', 'url' => '/session/:sessionId/element/:id/rect'],
+        DriverCommand::GET_ELEMENT_SIZE => ['method' => 'GET', 'url' => '/session/:sessionId/element/:id/rect'],
+        DriverCommand::GET_WINDOW_HANDLES => ['method' => 'GET', 'url' => '/session/:sessionId/window/handles'],
+        DriverCommand::GET_ALERT_TEXT => ['method' => 'GET', 'url' => '/session/:sessionId/alert/text'],
+        DriverCommand::IMPLICITLY_WAIT => ['method' => 'POST', 'url' => '/session/:sessionId/timeouts'],
+        DriverCommand::SET_ALERT_VALUE => ['method' => 'POST', 'url' => '/session/:sessionId/alert/text'],
+        DriverCommand::SET_SCRIPT_TIMEOUT => ['method' => 'POST', 'url' => '/session/:sessionId/timeouts'],
+        DriverCommand::SET_TIMEOUT => ['method' => 'POST', 'url' => '/session/:sessionId/timeouts'],
     ];
     /**
      * @var string

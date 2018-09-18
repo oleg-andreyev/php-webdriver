@@ -15,6 +15,7 @@
 
 namespace Facebook\WebDriver\Remote;
 
+use Facebook\WebDriver\Exception\UnsupportedOperationException;
 use Facebook\WebDriver\Interactions\WebDriverActions;
 use Facebook\WebDriver\JavaScriptExecutor;
 use Facebook\WebDriver\WebDriver;
@@ -393,7 +394,7 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
      */
     public function manage()
     {
-        return new WebDriverOptions($this->getExecuteMethod());
+        return new WebDriverOptions($this->getExecuteMethod(), $this->w3cCompliant);
     }
 
     /**
@@ -424,7 +425,7 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
     public function getMouse()
     {
         if (!$this->mouse) {
-            $this->mouse = new RemoteMouse($this->getExecuteMethod());
+            $this->mouse = new RemoteMouse($this->getExecuteMethod(), $this->w3cCompliant);
         }
 
         return $this->mouse;
@@ -536,8 +537,11 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
      */
     public static function getAllSessions($selenium_server_url = 'http://localhost:4444/wd/hub', $timeout_in_ms = 30000) {
         // BC layer to not break the method signature
-        $w3c_compliant = func_num_args() > 2 ? func_get_arg(2) : false;
-        $executor = new HttpCommandExecutor($selenium_server_url, null, null, $w3c_compliant);
+        if (func_num_args() > 2 && func_get_arg(2)) {
+            throw new UnsupportedOperationException('"getAllSessions" is not supported by the W3C specification');
+        }
+
+        $executor = new HttpCommandExecutor($selenium_server_url, null, null);
         $executor->setConnectionTimeout($timeout_in_ms);
 
         $command = new WebDriverCommand(

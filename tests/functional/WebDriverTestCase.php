@@ -39,6 +39,8 @@ class WebDriverTestCase extends TestCase
     protected $connectionTimeout = 60000;
     /** @var int */
     protected $requestTimeout = 60000;
+    /** @var bool */
+    protected $w3cCompliant = false;
 
     protected function setUp()
     {
@@ -58,6 +60,9 @@ class WebDriverTestCase extends TestCase
                 // --no-sandbox is a workaround for Chrome crashing: https://github.com/SeleniumHQ/selenium/issues/4961
                 $chromeOptions->addArguments(['--headless', 'window-size=1024,768', '--no-sandbox']);
                 $this->desiredCapabilities->setCapability(ChromeOptions::CAPABILITY, $chromeOptions);
+            } elseif ($browserName === WebDriverBrowserType::FIREFOX && getenv('GECKODRIVER')) {
+                $this->serverUrl = 'http://localhost:4444';
+                $this->w3cCompliant = true;
             }
 
             $this->desiredCapabilities->setBrowserName($browserName);
@@ -68,7 +73,11 @@ class WebDriverTestCase extends TestCase
                 $this->serverUrl,
                 $this->desiredCapabilities,
                 $this->connectionTimeout,
-                $this->requestTimeout
+                $this->requestTimeout,
+                null,
+                null,
+                null,
+                $this->w3cCompliant
             );
         }
     }
