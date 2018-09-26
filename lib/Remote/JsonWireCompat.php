@@ -53,7 +53,7 @@ abstract class JsonWireCompat
         $value = $by->getValue();
 
         if ($w3cCompliant) {
-            switch ($w3cCompliant) {
+            switch ($mechanism) {
                 // Convert to CSS selectors
                 case 'class name':
                     $mechanism = 'css selector';

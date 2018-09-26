@@ -48,6 +48,12 @@ simply set the `BROWSER_NAME` environment variable:
     export BROWSER_NAME="firefox"
     ./vendor/bin/phpunit --testsuite functional
 
+To test with Geckodriver, [download](https://github.com/mozilla/geckodriver/releases) and start the server, then run:
+
+    export GECKODRIVER=1
+    export BROWSER_NAME=firefox
+    ./vendor/bin/phpunit --testsuite functional
+
 ### Check coding style
 
 Your code-style should comply with [PSR-2](http://www.php-fig.org/psr/psr-2/). To make sure your code matches this requirement run:
