@@ -84,9 +84,9 @@ class WebDriverException extends Exception
      * @throws WebDriverCurlException
      * @throws XPathLookupException
      */
-    public static function throwException($status_code, $message, $results, $w3c_compliant = false)
+    public static function throwException($status_code, $message, $results)
     {
-        if ($w3c_compliant) {
+        if (is_string($status_code)) {
             // see https://w3c.github.io/webdriver/webdriver-spec.html#handling-errors
             switch ($status_code) {
                 case 'no such element':

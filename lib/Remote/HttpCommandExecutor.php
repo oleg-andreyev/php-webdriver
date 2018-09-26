@@ -273,7 +273,7 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
             }
         }
 
-        if ($params && \is_array($params) && $http_method !== 'POST') {
+        if ($params && is_array($params) && $http_method !== 'POST') {
             throw new BadMethodCallException(sprintf(
                 'The http method called for %s is %s but it has to be POST' .
                 ' if you want to pass the JSON params %s',
@@ -292,7 +292,7 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
             curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, $http_method);
         }
 
-        if (\in_array($http_method, ['POST', 'PUT'])) {
+        if (in_array($http_method, ['POST', 'PUT'])) {
             // Disable sending 'Expect: 100-Continue' header, as it is causing issues with eg. squid proxy
             // https://tools.ietf.org/html/rfc7231#section-5.1.1
             curl_setopt($this->curl, CURLOPT_HTTPHEADER, array_merge(static::DEFAULT_HTTP_HEADERS, ['Expect:']));
@@ -302,7 +302,7 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
 
         $encoded_params = null;
         if ($http_method === 'POST') {
-            $encoded_params = $params && \is_array($params) ? json_encode($params) : '{}';
+            $encoded_params = $params && is_array($params) ? json_encode($params) : '{}';
         }
 
         curl_setopt($this->curl, CURLOPT_POSTFIELDS, $encoded_params);
@@ -315,7 +315,7 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
                 $http_method,
                 $url
             );
-            if ($params && \is_array($params)) {
+            if ($params && is_array($params)) {
                 $msg .= sprintf(' with params: %s', json_encode($params));
             }
 
@@ -337,20 +337,20 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
         }
 
         $value = null;
-        if (\is_array($results) && array_key_exists('value', $results)) {
+        if (is_array($results) && array_key_exists('value', $results)) {
             $value = $results['value'];
         }
 
         $message = null;
-        if (\is_array($value) && array_key_exists('message', $value)) {
+        if (is_array($value) && array_key_exists('message', $value)) {
             $message = $value['message'];
         }
 
         $sessionId = null;
-        if (\is_array($value) && array_key_exists('sessionId', $value)) {
+        if (is_array($value) && array_key_exists('sessionId', $value)) {
             // W3C's WebDriver
             $sessionId = $value['sessionId'];
-        } elseif (\is_array($results) && array_key_exists('sessionId', $results)) {
+        } elseif (is_array($results) && array_key_exists('sessionId', $results)) {
             // Legacy JsonWire
             $sessionId = $results['sessionId'];
         }

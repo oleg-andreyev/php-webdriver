@@ -47,13 +47,13 @@ abstract class JsonWireCompat
      * @param bool $w3cCompliance
      * @return array
      */
-    public static function getUsing(WebDriverBy $by, $w3cCompliance)
+    public static function getUsing(WebDriverBy $by, $w3cCompliant)
     {
         $mechanism = $by->getMechanism();
         $value = $by->getValue();
 
-        if ($w3cCompliance) {
-            switch ($mechanism) {
+        if ($w3cCompliant) {
+            switch ($w3cCompliant) {
                 // Convert to CSS selectors
                 case 'class name':
                     $mechanism = 'css selector';

@@ -37,10 +37,10 @@ For the functional tests you must first [download](http://selenium-release.stora
 the selenium standalone server, start the local PHP server which will serve the test pages and then run the `functional`
 test suite:
 
-    java -jar selenium-server-standalone-3.12.0.jar -log selenium.log &
+    java -jar selenium-server-standalone-3.14.0.jar -log selenium.log &
     php -S localhost:8000 -t tests/functional/web/ &
     ./vendor/bin/phpunit --testsuite functional
-    
+
 The functional tests will be started in HtmlUnit headless browser by default. If you want to run them in eg. Firefox,
 simply set the `BROWSER_NAME` environment variable:
 
