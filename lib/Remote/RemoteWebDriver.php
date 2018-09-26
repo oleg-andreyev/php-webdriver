@@ -122,21 +122,38 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
             $executor->setRequestTimeout($request_timeout_in_ms);
         }
 
-        if ($required_capabilities !== null) {
-            // TODO: Selenium (as of v3.0.1) does accept requiredCapabilities only as a property of desiredCapabilities.
-            // This will probably change in future with the W3C WebDriver spec, but is the only way how to pass these
-            // values now.
-            $desired_capabilities->setCapability('requiredCapabilities', $required_capabilities->toArray());
+        if ($w3c_compliant) {
+            $parameters = [
+                'capabilities' => [
+                    'firstMatch' => [$desired_capabilities->toArray()],
+                ],
+            ];
+
+            if (null !== $required_capabilities && $required_capabilities_array = $required_capabilities->toArray()) {
+                $parameters['capabilities']['alwaysMatch'] = $required_capabilities_array;
+            }
+        } else {
+            if ($required_capabilities !== null) {
+                // TODO: Selenium (as of v3.0.1) does accept requiredCapabilities only as a property of desiredCapabilities.
+                // This has changed with the W3C WebDriver spec, but is the only way how to pass these
+                // values with the legacy protocol.
+                $desired_capabilities->setCapability('requiredCapabilities', $required_capabilities->toArray());
+            }
+
+            $parameters = [
+                'desiredCapabilities' => $desired_capabilities->toArray(),
+            ];
         }
 
         $command = new WebDriverCommand(
             null,
             DriverCommand::NEW_SESSION,
-            ['desiredCapabilities' => $desired_capabilities->toArray()]
+            $parameters
         );
 
         $response = $executor->execute($command);
-        $returnedCapabilities = new DesiredCapabilities($response->getValue());
+        $value = $response->getValue();
+        $returnedCapabilities = new DesiredCapabilities($w3c_compliant ? $value['capabilities'] : $value);
 
         $driver = new static($executor, $response->getSessionID(), $returnedCapabilities, $w3c_compliant);
 
