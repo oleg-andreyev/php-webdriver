@@ -103,7 +103,7 @@ before_script:
   - if [ "$GECKODRIVER" = "1" ]; then mkdir geckodriver; wget -q -t 3 https://github.com/mozilla/geckodriver/releases/download/v0.22.0/geckodriver-v0.22.0-linux64.tar.gz; tar xzf geckodriver-v0.22.0-linux64.tar.gz -C geckodriver; fi
   - sh -e /etc/init.d/xvfb start
   - if [ "$GECKODRIVER" != "1" && ! -f jar/selenium-server-standalone-3.14.0.jar ]; then wget -q -t 3 -P jar https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar; fi
-  - if [ "$GECKODRIVER" != "1" ]; then java -Dwebdriver.firefox.marionette=false -Dwebdriver.chrome.driver="$CHROMEDRIVER_PATH" -jar jar/selenium-server-standalone-3.14.0.jar -enablePassThrough false -log ./logs/selenium.log &; fi
+  - 'if [ "$GECKODRIVER" != "1" ]; java -Dwebdriver.firefox.marionette=false -Dwebdriver.chrome.driver="$CHROMEDRIVER_PATH" -jar jar/selenium-server-standalone-3.8.1.jar -enablePassThrough false -log ./logs/selenium.log &; fi'
   - if [ "$GECKODRIVER" = "1" ]; then geckodriver/geckodriver &; fi
   - until $(echo | nc localhost 4444); do sleep 1; echo Waiting for Selenium server on port 4444...; done; echo "Selenium server started"
   - php -S 127.0.0.1:8000 -t tests/functional/web/ &>>./logs/php-server.log &
