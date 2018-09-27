@@ -16,6 +16,14 @@ env:
 
 matrix:
   include:
+    # Add build to run tests against Firefox with Geckodriver (W3C mode) inside Travis environment
+    - php: 7.2
+      env:
+        - BROWSER_NAME="firefox"
+        - GECKODRIVER="1"
+      addons:
+        firefox: "latest"
+
     # Add build to run tests against Firefox inside Travis environment
     - php: 7.2
       env: BROWSER_NAME="firefox"
@@ -92,9 +100,11 @@ install:
 before_script:
   - if [ "$BROWSER_NAME" = "chrome" ]; then mkdir chromedriver; wget -q -t 3 https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip; unzip chromedriver_linux64 -d chromedriver; fi
   - if [ "$BROWSER_NAME" = "chrome" ]; then export CHROMEDRIVER_PATH=$PWD/chromedriver/chromedriver; fi
+  - if [ "$GECKODRIVER" = "1" ]; then mkdir geckodriver; wget -q -t 3 https://github.com/mozilla/geckodriver/releases/download/v0.22.0/geckodriver-v0.22.0-linux64.tar.gz; tar xzf geckodriver-v0.22.0-linux64.tar.gz -C geckodriver; fi
   - sh -e /etc/init.d/xvfb start
-  - if [ ! -f jar/selenium-server-standalone-3.14.0.jar ]; then wget -q -t 3 -P jar https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar; fi
-  - java -Dwebdriver.firefox.marionette=false -Dwebdriver.chrome.driver="$CHROMEDRIVER_PATH" -jar jar/selenium-server-standalone-3.14.0.jar -enablePassThrough false -log ./logs/selenium.log &
+  - if [ "$GECKODRIVER" != "1" && ! -f jar/selenium-server-standalone-3.14.0.jar ]; then wget -q -t 3 -P jar https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar; fi
+  - if [ "$GECKODRIVER" != "1" ]; then java -Dwebdriver.firefox.marionette=false -Dwebdriver.chrome.driver="$CHROMEDRIVER_PATH" -jar jar/selenium-server-standalone-3.14.0.jar -enablePassThrough false -log ./logs/selenium.log &; fi
+  - if [ "$GECKODRIVER" = "1" ]; then geckodriver/geckodriver &; fi
   - until $(echo | nc localhost 4444); do sleep 1; echo Waiting for Selenium server on port 4444...; done; echo "Selenium server started"
   - php -S 127.0.0.1:8000 -t tests/functional/web/ &>>./logs/php-server.log &
   - until $(echo | nc localhost 8000); do sleep 1; echo waiting for PHP server on port 8000...; done; echo "PHP server started"
