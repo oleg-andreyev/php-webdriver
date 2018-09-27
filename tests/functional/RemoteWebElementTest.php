@@ -134,6 +134,9 @@ class RemoteWebElementTest extends WebDriverTestCase
      */
     public function testShouldClearFormElementText()
     {
+        if ('1' === getenv('GECKODRIVER')) {
+            $this->markTestSkipped('clear() doesn\'t work with Geckodriver.');
+        }
         $this->driver->get($this->getTestPageUrl('form.html'));
 
         $input = $this->driver->findElement(WebDriverBy::id('input-text'));
@@ -153,6 +156,9 @@ class RemoteWebElementTest extends WebDriverTestCase
      */
     public function testShouldSendKeysToFormElement()
     {
+        if ('1' === getenv('GECKODRIVER')) {
+            $this->markTestSkipped('clear() doesn\'t work with Geckodriver.');
+        }
         $this->driver->get($this->getTestPageUrl('form.html'));
 
         $input = $this->driver->findElement(WebDriverBy::id('input-text'));

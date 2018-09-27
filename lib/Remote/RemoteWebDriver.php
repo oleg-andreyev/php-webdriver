@@ -552,7 +552,8 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
      * @param bool $w3c_compliant
      * @return array
      */
-    public static function getAllSessions($selenium_server_url = 'http://localhost:4444/wd/hub', $timeout_in_ms = 30000) {
+    public static function getAllSessions($selenium_server_url = 'http://localhost:4444/wd/hub', $timeout_in_ms = 30000)
+    {
         // BC layer to not break the method signature
         if (func_num_args() > 2 && func_get_arg(2)) {
             throw new UnsupportedOperationException('"getAllSessions" is not supported by the W3C specification');

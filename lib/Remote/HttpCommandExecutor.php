@@ -142,6 +142,7 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
      */
     protected static $w3cCompliantCommands = [
         DriverCommand::ACCEPT_ALERT => ['method' => 'POST', 'url' => '/session/:sessionId/alert/accept'],
+        DriverCommand::ACTIONS => ['method' => 'POST', 'url' => '/session/:sessionId/actions'],
         DriverCommand::DISMISS_ALERT => ['method' => 'POST', 'url' => '/session/:sessionId/alert/dismiss'],
         DriverCommand::EXECUTE_SCRIPT => ['method' => 'POST', 'url' => '/session/:sessionId/execute/sync'],
         DriverCommand::EXECUTE_ASYNC_SCRIPT => ['method' => 'POST', 'url' => '/session/:sessionId/execute/async'],
@@ -252,8 +253,11 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
      */
     public function execute(WebDriverCommand $command)
     {
-        if (!isset(self::$commands[$command->getName()])) {
-            throw new InvalidArgumentException($command->getName() . ' is not a valid command.');
+        $commandName = $command->getName();
+        if (!isset(self::$commands[$commandName])) {
+            if ($this->w3cCompliant && !isset(self::$w3cCompliantCommands[$commandName])) {
+                throw new InvalidArgumentException($command->getName() . ' is not a valid command.');
+            }
         }
 
         if ($this->w3cCompliant) {
@@ -283,6 +287,7 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
             ));
         }
 
+        //var_dump($http_method, $this->url . $url);
         curl_setopt($this->curl, CURLOPT_URL, $this->url . $url);
 
         // https://github.com/facebook/php-webdriver/issues/173
