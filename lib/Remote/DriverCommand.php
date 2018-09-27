@@ -148,6 +148,7 @@ class DriverCommand
 
     // W3C specific
     const ACTIONS = 'actions';
+    const GET_ELEMENT_PROPERTY = 'getElementProperty';
 
     private function __construct()
     {

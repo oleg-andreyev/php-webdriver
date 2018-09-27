@@ -73,6 +73,23 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
             [':id' => $this->id]
         );
 
+        if ($this->w3cCompliant) {
+            $this->executor->execute(DriverCommand::ACTIONS, [
+                'actions' => [[
+                    'type' => 'key',
+                    'id' => 'keyboard',
+                    'actions' => [
+                        ['type' => 'keyDown' , 'value' => WebDriverKeys::CONTROL],
+                        ['type' => 'keyDown' , 'value' => 'a'],
+                        ['type' => 'keyUp' , 'value' => WebDriverKeys::CONTROL],
+                        ['type' => 'keyUp' , 'value' => 'a'],
+                        ['type' => 'keyDown' , 'value' => WebDriverKeys::BACKSPACE],
+                        ['type' => 'keyUp' , 'value' => WebDriverKeys::BACKSPACE],
+                    ],
+                ]],
+            ]);
+        }
+
         return $this;
     }
 
@@ -150,10 +167,14 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
             ':id' => $this->id,
         ];
 
-        return $this->executor->execute(
-            DriverCommand::GET_ELEMENT_ATTRIBUTE,
-            $params
-        );
+        if ($this->w3cCompliant && 'value' === $attribute_name) {
+            $value = $this->executor->execute(DriverCommand::GET_ELEMENT_PROPERTY, $params);
+            if (null !== $value) {
+                return $value;
+            }
+        }
+
+        return $this->executor->execute(DriverCommand::GET_ELEMENT_ATTRIBUTE, $params);
     }
 
     /**
@@ -331,6 +352,7 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
                 $params = [
                     'text' => (string) $value,
                     ':id' => $this->id,
+                    'foo' => 'bar',
                 ];
             } else {
                 $params = [
@@ -338,22 +360,25 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
                     ':id' => $this->id,
                 ];
             }
-            $this->executor->execute(DriverCommand::SEND_KEYS_TO_ELEMENT, $params);
-        } else {
-            if ($this->w3cCompliant) {
-                $params = [
-                    'text' => $local_file,
-                    ':id' => $this->id,
-                ];
-            } else {
-                $params = [
-                    'value' => WebDriverKeys::encode($this->upload($local_file)),
-                    ':id' => $this->id,
-                ];
-            }
 
             $this->executor->execute(DriverCommand::SEND_KEYS_TO_ELEMENT, $params);
+
+            return $this;
         }
+
+        if ($this->w3cCompliant) {
+            $params = [
+                'text' => $local_file,
+                ':id' => $this->id,
+            ];
+        } else {
+            $params = [
+                'value' => WebDriverKeys::encode($this->upload($local_file)),
+                ':id' => $this->id,
+            ];
+        }
+
+        $this->executor->execute(DriverCommand::SEND_KEYS_TO_ELEMENT, $params);
 
         return $this;
     }
