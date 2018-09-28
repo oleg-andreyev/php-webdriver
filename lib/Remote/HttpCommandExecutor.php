@@ -168,7 +168,7 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
     /**
      * @var bool
      */
-    protected $w3cCompliant;
+    protected $w3cCompliant = true;
 
     /**
      * @param string $url
@@ -176,12 +176,11 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
      * @param int|null $http_proxy_port
      * @param bool $w3c_compliant
      */
-    public function __construct($url, $http_proxy = null, $http_proxy_port = null, $w3c_compliant = false)
+    public function __construct($url, $http_proxy = null, $http_proxy_port = null)
     {
         self::$w3cCompliantCommands = array_merge(self::$commands, self::$w3cCompliantCommands);
 
         $this->url = $url;
-        $this->w3cCompliant = $w3c_compliant;
         $this->curl = curl_init();
 
         if (!empty($http_proxy)) {
@@ -205,6 +204,11 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
         curl_setopt($this->curl, CURLOPT_HTTPHEADER, static::DEFAULT_HTTP_HEADERS);
         $this->setRequestTimeout(30000);
         $this->setConnectionTimeout(30000);
+    }
+
+    public function disableW3CCompliance()
+    {
+        $this->w3cCompliant = false;
     }
 
     /**

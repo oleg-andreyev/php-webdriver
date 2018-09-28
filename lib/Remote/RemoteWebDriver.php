@@ -95,7 +95,6 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
      * @param string|null $http_proxy The proxy to tunnel requests to the remote Selenium WebDriver through
      * @param int|null $http_proxy_port The proxy port to tunnel requests to the remote Selenium WebDriver through
      * @param DesiredCapabilities $required_capabilities The required capabilities
-     * @param bool $w3c_compliant false to use the legacy JsonWire protocol, true for the W3C WebDriver spec
      *
      * @return static
      */
@@ -109,12 +108,11 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
         DesiredCapabilities $required_capabilities = null
     ) {
         // BC layer to not break the method signature
-        $w3c_compliant = func_num_args() > 7 ? func_get_arg(7) : false;
         $selenium_server_url = preg_replace('#/+$#', '', $selenium_server_url);
 
         $desired_capabilities = self::castToDesiredCapabilitiesObject($desired_capabilities);
 
-        $executor = new HttpCommandExecutor($selenium_server_url, $http_proxy, $http_proxy_port, $w3c_compliant);
+        $executor = new HttpCommandExecutor($selenium_server_url, $http_proxy, $http_proxy_port);
         if ($connection_timeout_in_ms !== null) {
             $executor->setConnectionTimeout($connection_timeout_in_ms);
         }
@@ -122,28 +120,28 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
             $executor->setRequestTimeout($request_timeout_in_ms);
         }
 
-        if ($w3c_compliant) {
-            $parameters = [
-                'capabilities' => [
-                    'firstMatch' => [$desired_capabilities->toArray()],
-                ],
-            ];
+        // W3C
+        $parameters = [
+            'capabilities' => [
+                'firstMatch' => [$desired_capabilities->toArray()],
+            ],
+        ];
 
-            if (null !== $required_capabilities && $required_capabilities_array = $required_capabilities->toArray()) {
-                $parameters['capabilities']['alwaysMatch'] = $required_capabilities_array;
-            }
-        } else {
-            if ($required_capabilities !== null) {
-                // TODO: Selenium (as of v3.0.1) does accept requiredCapabilities only as a property of desiredCapabilities.
-                // This has changed with the W3C WebDriver spec, but is the only way how to pass these
-                // values with the legacy protocol.
-                $desired_capabilities->setCapability('requiredCapabilities', $required_capabilities->toArray());
-            }
-
-            $parameters = [
-                'desiredCapabilities' => $desired_capabilities->toArray(),
-            ];
+        // Legacy protocol
+        if (null !== $required_capabilities && $required_capabilities_array = $required_capabilities->toArray()) {
+            $parameters['capabilities']['alwaysMatch'] = $required_capabilities_array;
         }
+
+        if ($required_capabilities !== null) {
+            // TODO: Selenium (as of v3.0.1) does accept requiredCapabilities only as a property of desiredCapabilities.
+            // This has changed with the W3C WebDriver spec, but is the only way how to pass these
+            // values with the legacy protocol.
+            $desired_capabilities->setCapability('requiredCapabilities', $required_capabilities->toArray());
+        }
+
+        $parameters = [
+            'desiredCapabilities' => $desired_capabilities->toArray(),
+        ];
 
         $command = new WebDriverCommand(
             null,
@@ -153,6 +151,11 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
 
         $response = $executor->execute($command);
         $value = $response->getValue();
+
+        if (!$w3c_compliant = isset($value['capabilities'])) {
+            $executor->disableW3CCompliance();
+        }
+
         $returnedCapabilities = new DesiredCapabilities($w3c_compliant ? $value['capabilities'] : $value);
 
         $driver = new static($executor, $response->getSessionID(), $returnedCapabilities, $w3c_compliant);

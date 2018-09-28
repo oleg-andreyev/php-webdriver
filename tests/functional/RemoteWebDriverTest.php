@@ -77,11 +77,11 @@ class RemoteWebDriverTest extends WebDriverTestCase
      */
     public function testShouldGetAllSessions()
     {
-        if ($this->w3cCompliant) {
+        if (getenv('GECKODRIVER') === '1') {
             $this->markTestSkipped('"getAllSessions" is not supported by the W3C specification');
         }
 
-        $sessions = RemoteWebDriver::getAllSessions($this->serverUrl, 30000, $this->w3cCompliant);
+        $sessions = RemoteWebDriver::getAllSessions($this->serverUrl, 30000);
 
         $this->assertInternalType('array', $sessions);
         $this->assertCount(1, $sessions);
@@ -98,7 +98,7 @@ class RemoteWebDriverTest extends WebDriverTestCase
      */
     public function testShouldQuitAndUnsetExecutor()
     {
-        if ($this->w3cCompliant) {
+        if (getenv('GECKODRIVER') === '1') {
             $this->markTestSkipped('"getAllSessions" is not supported by the W3C specification');
         }
 

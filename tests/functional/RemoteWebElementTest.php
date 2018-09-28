@@ -78,8 +78,8 @@ class RemoteWebElementTest extends WebDriverTestCase
 
         $elementSize = $element->getSize();
         $this->assertInstanceOf(WebDriverDimension::class, $elementSize);
-        $this->assertSame($this->w3cCompliant ? 333. : 333, $elementSize->getWidth());
-        $this->assertSame($this->w3cCompliant ? 66. : 66, $elementSize->getHeight());
+        $this->assertSame(333, $elementSize->getWidth());
+        $this->assertSame(66, $elementSize->getHeight());
     }
 
     /**
@@ -272,7 +272,7 @@ class RemoteWebElementTest extends WebDriverTestCase
      */
     public function testShouldCompareEqualsElement()
     {
-        if ($this->w3cCompliant) {
+        if (getenv('GECKODRIVER') === '1') {
             $this->markTestSkipped('"equals" is not supported by the W3C specification');
         }
 
