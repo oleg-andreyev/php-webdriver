@@ -104,7 +104,7 @@ class RemoteWebDriverTest extends WebDriverTestCase
 
         $this->assertCount(
             1,
-            RemoteWebDriver::getAllSessions($this->serverUrl, 30000, $this->w3cCompliant)
+            RemoteWebDriver::getAllSessions($this->serverUrl, 30000)
         );
         $this->assertInstanceOf(HttpCommandExecutor::class, $this->driver->getCommandExecutor());
 
@@ -112,7 +112,7 @@ class RemoteWebDriverTest extends WebDriverTestCase
 
         $this->assertCount(
             0,
-            RemoteWebDriver::getAllSessions($this->serverUrl, 30000, $this->w3cCompliant)
+            RemoteWebDriver::getAllSessions($this->serverUrl, 30000)
         );
         $this->assertNull($this->driver->getCommandExecutor());
     }

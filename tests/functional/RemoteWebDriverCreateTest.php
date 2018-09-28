@@ -63,8 +63,7 @@ class RemoteWebDriverCreateTest extends WebDriverTestCase
             $this->requestTimeout,
             null,
             null,
-            $requiredCapabilities,
-            $this->w3cCompliant
+            $requiredCapabilities
         );
 
         $this->assertInstanceOf(RemoteWebDriver::class, $this->driver);
