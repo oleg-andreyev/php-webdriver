@@ -63,8 +63,8 @@ class RemoteWebElementTest extends WebDriverTestCase
 
         $elementLocation = $element->getLocation();
         $this->assertInstanceOf(WebDriverPoint::class, $elementLocation);
-        $this->assertSame($this->w3cCompliant ? 33. : 33, $elementLocation->getX());
-        $this->assertSame($this->w3cCompliant ? 500. : 500, $elementLocation->getY());
+        $this->assertSame(33, $elementLocation->getX());
+        $this->assertSame(500, $elementLocation->getY());
     }
 
     /**

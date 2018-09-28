@@ -364,7 +364,6 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
             $sessionId = $results['sessionId'];
         }
 
-        // TODO: handle status codes
         // @see https://w3c.github.io/webdriver/webdriver-spec.html#handling-errors
         if (isset($value['error'])) {
             // W3C's WebDriver

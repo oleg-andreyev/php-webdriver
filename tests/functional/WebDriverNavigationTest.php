@@ -70,7 +70,6 @@ class WebDriverNavigationTest extends WebDriverTestCase
         $inputElement = $this->driver->findElement(WebDriverBy::name('test_name'));
         $inputElementOriginalValue = $inputElement->getAttribute('value');
         $inputElement->clear()->sendKeys('New value');
-
         $this->assertSame('New value', $inputElement->getAttribute('value'));
 
         $this->driver->navigate()->refresh();
