@@ -367,7 +367,7 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
         // @see https://w3c.github.io/webdriver/webdriver-spec.html#handling-errors
         if (isset($value['error'])) {
             // W3C's WebDriver
-            WebDriverException::throwException($value['error'], $message, $results, true);
+            WebDriverException::throwException($value['error'], $message, $results);
         }
 
         $status = isset($results['status']) ? $results['status'] : 0;

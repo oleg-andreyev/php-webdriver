@@ -45,7 +45,6 @@ class WebDriverException extends Exception
      * @param int|string $status_code
      * @param string $message
      * @param mixed $results
-     * @param mixed $w3c_compliant
      *
      * @throws ElementNotSelectableException
      * @throws ElementNotVisibleException

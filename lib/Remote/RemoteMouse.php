@@ -34,7 +34,7 @@ class RemoteMouse implements WebDriverMouse
 
     /**
      * @param RemoteExecuteMethod $executor
-     * @param mixed $w3cCompliant
+     * @param bool $w3cCompliant
      */
     public function __construct(RemoteExecuteMethod $executor, $w3cCompliant = false)
     {

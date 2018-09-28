@@ -44,8 +44,8 @@ abstract class JsonWireCompat
 
     /**
      * @param WebDriverBy $by
-     * @param bool $w3cCompliance
-     * @param mixed $w3cCompliant
+     * @param bool $w3cCompliant
+     *
      * @return array
      */
     public static function getUsing(WebDriverBy $by, $w3cCompliant)

@@ -15,7 +15,6 @@
 
 namespace Facebook\WebDriver\Remote;
 
-use Facebook\WebDriver\Exception\UnsupportedOperationException;
 use Facebook\WebDriver\Interactions\WebDriverActions;
 use Facebook\WebDriver\JavaScriptExecutor;
 use Facebook\WebDriver\WebDriver;
@@ -139,9 +138,7 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
             $desired_capabilities->setCapability('requiredCapabilities', $required_capabilities->toArray());
         }
 
-        $parameters = [
-            'desiredCapabilities' => $desired_capabilities->toArray(),
-        ];
+        $parameters['desiredCapabilities'] = $desired_capabilities->toArray();
 
         $command = new WebDriverCommand(
             null,
@@ -552,16 +549,10 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
      *
      * @param string $selenium_server_url The url of the remote Selenium WebDriver server
      * @param int $timeout_in_ms
-     * @param bool $w3c_compliant
      * @return array
      */
     public static function getAllSessions($selenium_server_url = 'http://localhost:4444/wd/hub', $timeout_in_ms = 30000)
     {
-        // BC layer to not break the method signature
-        if (func_num_args() > 2 && func_get_arg(2)) {
-            throw new UnsupportedOperationException('"getAllSessions" is not supported by the W3C specification');
-        }
-
         $executor = new HttpCommandExecutor($selenium_server_url, null, null);
         $executor->setConnectionTimeout($timeout_in_ms);
 

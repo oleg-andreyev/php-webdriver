@@ -352,7 +352,6 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
                 $params = [
                     'text' => (string) $value,
                     ':id' => $this->id,
-                    'foo' => 'bar',
                 ];
             } else {
                 $params = [
