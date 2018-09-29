@@ -431,7 +431,7 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
             ]);
             // Wait for the new page to be ready
             // TODO: wait for <html> to be ready, or use another more elegant way
-            usleep(10000);
+            //usleep(10000);
 
             return $this;
         }

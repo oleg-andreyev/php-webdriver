@@ -181,7 +181,7 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
     ) {
         // BC layer to not break the method signature
         $w3c_compliant = func_num_args() > 3 ? func_get_arg(3) : false;
-        $executor = new HttpCommandExecutor($selenium_server_url, null, null, $w3c_compliant);
+        $executor = new HttpCommandExecutor($selenium_server_url, null, null);
         if ($connection_timeout_in_ms !== null) {
             $executor->setConnectionTimeout($connection_timeout_in_ms);
         }
