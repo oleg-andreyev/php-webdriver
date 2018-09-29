@@ -414,7 +414,10 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
         if ($this->w3cCompliant) {
             $this->executor->execute(DriverCommand::EXECUTE_SCRIPT, [
                 // cannot call the submit method directly in case an input of this form is named "submit"
-                'script' => sprintf('return Object.getPrototypeOf(%1$s).submit.call(%1$s);', 'form' === $this->getTagName() ? 'arguments[0]' : 'arguments[0].form'),
+                'script' => sprintf(
+                    'return Object.getPrototypeOf(%1$s).submit.call(%1$s);',
+                    'form' === $this->getTagName() ? 'arguments[0]' : 'arguments[0].form'
+                ),
                 'args' => [[JsonWireCompat::WEB_DRIVER_ELEMENT_IDENTIFIER => $this->id]],
             ]);
             // Wait for the new page to be ready

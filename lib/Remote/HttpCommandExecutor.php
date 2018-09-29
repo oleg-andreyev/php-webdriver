@@ -148,7 +148,10 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
         DriverCommand::EXECUTE_ASYNC_SCRIPT => ['method' => 'POST', 'url' => '/session/:sessionId/execute/async'],
         DriverCommand::GET_CURRENT_WINDOW_HANDLE => ['method' => 'GET', 'url' => '/session/:sessionId/window'],
         DriverCommand::GET_ELEMENT_LOCATION => ['method' => 'GET', 'url' => '/session/:sessionId/element/:id/rect'],
-        DriverCommand::GET_ELEMENT_PROPERTY => ['method' => 'GET', 'url' => '/session/:sessionId/element/:id/property/:name'],
+        DriverCommand::GET_ELEMENT_PROPERTY => [
+            'method' => 'GET',
+            'url' => '/session/:sessionId/element/:id/property/:name'
+        ],
         DriverCommand::GET_ELEMENT_SIZE => ['method' => 'GET', 'url' => '/session/:sessionId/element/:id/rect'],
         DriverCommand::GET_WINDOW_HANDLES => ['method' => 'GET', 'url' => '/session/:sessionId/window/handles'],
         DriverCommand::GET_ALERT_TEXT => ['method' => 'GET', 'url' => '/session/:sessionId/alert/text'],
