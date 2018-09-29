@@ -150,7 +150,7 @@ class HttpCommandExecutor implements WebDriverCommandExecutor
         DriverCommand::GET_ELEMENT_LOCATION => ['method' => 'GET', 'url' => '/session/:sessionId/element/:id/rect'],
         DriverCommand::GET_ELEMENT_PROPERTY => [
             'method' => 'GET',
-            'url' => '/session/:sessionId/element/:id/property/:name'
+            'url' => '/session/:sessionId/element/:id/property/:name',
         ],
         DriverCommand::GET_ELEMENT_SIZE => ['method' => 'GET', 'url' => '/session/:sessionId/element/:id/rect'],
         DriverCommand::GET_WINDOW_HANDLES => ['method' => 'GET', 'url' => '/session/:sessionId/window/handles'],

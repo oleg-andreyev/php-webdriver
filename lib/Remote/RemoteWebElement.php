@@ -167,10 +167,19 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
             ':id' => $this->id,
         ];
 
-        if ($this->w3cCompliant && 'value' === $attribute_name) {
+        if ($this->w3cCompliant && ($attribute_name === 'value' || $attribute_name === 'index')) {
             $value = $this->executor->execute(DriverCommand::GET_ELEMENT_PROPERTY, $params);
-            if (null !== $value) {
-                return $value;
+
+            if ($value === true) {
+                return 'true';
+            }
+
+            if ($value === false) {
+                return 'false';
+            }
+
+            if ($value !== null) {
+                return (string) $value;
             }
         }
 
