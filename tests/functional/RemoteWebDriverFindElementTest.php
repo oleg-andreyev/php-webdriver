@@ -61,4 +61,18 @@ class RemoteWebDriverFindElementTest extends WebDriverTestCase
         $this->assertCount(5, $elements);
         $this->assertContainsOnlyInstancesOf(RemoteWebElement::class, $elements);
     }
+
+    public function testEscapeCssSelector()
+    {
+        $this->driver->get($this->getTestPageUrl('escape_css.html'));
+
+        $element = $this->driver->findElement(WebDriverBy::id('.fo\'oo'));
+        $this->assertSame('Foo', $element->getText());
+
+        $element = $this->driver->findElement(WebDriverBy::className('#ba\'r'));
+        $this->assertSame('Bar', $element->getText());
+
+        $element = $this->driver->findElement(WebDriverBy::name('.#ba\'z'));
+        $this->assertSame('Baz', $element->getText());
+    }
 }

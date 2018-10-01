@@ -58,19 +58,45 @@ abstract class JsonWireCompat
                 // Convert to CSS selectors
                 case 'class name':
                     $mechanism = 'css selector';
-                    $value = ".$value";
+                    $value = sprintf('.%s', self::escapeSelector($value));
                     break;
                 case 'id':
                     $mechanism = 'css selector';
-                    $value = "#$value";
+                    $value = sprintf('#%s', self::escapeSelector($value));
                     break;
                 case 'name':
                     $mechanism = 'css selector';
-                    $value = "[name='$value']";
+                    $value = sprintf('[name=\'%s\']', self::escapeSelector($value));
                     break;
             }
         }
 
         return ['using' => $mechanism, 'value' => $value];
+    }
+
+    /**
+     * Escapes a CSS selector.
+     *
+     * Code adapted from the Zend Escaper project.
+     *
+     * @copyright Copyright (c) 2005-2015 Zend Technologies USA Inc. (http://www.zend.com)
+     * @see https://github.com/zendframework/zend-escaper/blob/master/src/Escaper.php
+     *
+     * @param string $selector
+     * @return string
+     */
+    private static function escapeSelector($selector)
+    {
+        return preg_replace_callback('/[^a-z0-9]/iSu', function ($matches) {
+            $chr = $matches[0];
+            if (mb_strlen($chr) == 1) {
+                $ord = ord($chr);
+            } else {
+                $chr = mb_convert_encoding($chr, 'UTF-32BE', 'UTF-8');
+                $ord = hexdec(bin2hex($chr));
+            }
+
+            return sprintf('\\%X ', $ord);
+        }, $selector);
     }
 }
