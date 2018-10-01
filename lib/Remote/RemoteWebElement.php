@@ -429,9 +429,6 @@ class RemoteWebElement implements WebDriverElement, WebDriverLocatable
                 ),
                 'args' => [[JsonWireCompat::WEB_DRIVER_ELEMENT_IDENTIFIER => $this->id]],
             ]);
-            // Wait for the new page to be ready
-            // TODO: wait for <html> to be ready, or use another more elegant way
-            usleep(10000);
 
             return $this;
         }
