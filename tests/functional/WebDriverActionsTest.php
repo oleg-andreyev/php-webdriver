@@ -46,10 +46,12 @@ class WebDriverActionsTest extends WebDriverTestCase
             ->click($element)
             ->perform();
 
-        $this->assertSame(
-            ['mouseover item-1', 'mousedown item-1', 'mouseup item-1', 'click item-1'],
-            $this->retrieveLoggedEvents()
-        );
+        $logs = ['mouseover item-1', 'mousedown item-1', 'mouseup item-1', 'click item-1'];
+        if ('1' === getenv('GECKODRIVER')) {
+            $logs[] = 'mouseover item-1';
+        }
+
+        $this->assertSame($logs, $this->retrieveLoggedEvents());
     }
 
     /**
