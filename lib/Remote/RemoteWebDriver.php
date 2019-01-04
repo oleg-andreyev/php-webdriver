@@ -58,19 +58,26 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
      * @var RemoteExecuteMethod
      */
     protected $executeMethod;
+    /**
+     * @var bool
+     */
+    protected $w3cCompliant;
 
     /**
      * @param HttpCommandExecutor $commandExecutor
      * @param string $sessionId
      * @param WebDriverCapabilities|null $capabilities
+     * @param bool $w3cCompliant false to use the legacy JsonWire protocol, true for the W3C WebDriver spec
      */
     protected function __construct(
         HttpCommandExecutor $commandExecutor,
         $sessionId,
-        WebDriverCapabilities $capabilities = null
+        WebDriverCapabilities $capabilities = null,
+        $w3cCompliant = false
     ) {
         $this->executor = $commandExecutor;
         $this->sessionID = $sessionId;
+        $this->w3cCompliant = $w3cCompliant;
 
         if ($capabilities !== null) {
             $this->capabilities = $capabilities;
@@ -87,6 +94,7 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
      * @param string|null $http_proxy The proxy to tunnel requests to the remote Selenium WebDriver through
      * @param int|null $http_proxy_port The proxy port to tunnel requests to the remote Selenium WebDriver through
      * @param DesiredCapabilities $required_capabilities The required capabilities
+     *
      * @return static
      */
     public static function create(
@@ -98,6 +106,7 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
         $http_proxy_port = null,
         DesiredCapabilities $required_capabilities = null
     ) {
+        // BC layer to not break the method signature
         $selenium_server_url = preg_replace('#/+$#', '', $selenium_server_url);
 
         $desired_capabilities = self::castToDesiredCapabilitiesObject($desired_capabilities);
@@ -110,23 +119,43 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
             $executor->setRequestTimeout($request_timeout_in_ms);
         }
 
+        // W3C
+        $parameters = [
+            'capabilities' => [
+                'firstMatch' => [$desired_capabilities->toArray()],
+            ],
+        ];
+
+        // Legacy protocol
+        if (null !== $required_capabilities && $required_capabilities_array = $required_capabilities->toArray()) {
+            $parameters['capabilities']['alwaysMatch'] = $required_capabilities_array;
+        }
+
         if ($required_capabilities !== null) {
             // TODO: Selenium (as of v3.0.1) does accept requiredCapabilities only as a property of desiredCapabilities.
-            // This will probably change in future with the W3C WebDriver spec, but is the only way how to pass these
-            // values now.
+            // This has changed with the W3C WebDriver spec, but is the only way how to pass these
+            // values with the legacy protocol.
             $desired_capabilities->setCapability('requiredCapabilities', $required_capabilities->toArray());
         }
+
+        $parameters['desiredCapabilities'] = $desired_capabilities->toArray();
 
         $command = new WebDriverCommand(
             null,
             DriverCommand::NEW_SESSION,
-            ['desiredCapabilities' => $desired_capabilities->toArray()]
+            $parameters
         );
 
         $response = $executor->execute($command);
-        $returnedCapabilities = new DesiredCapabilities($response->getValue());
+        $value = $response->getValue();
 
-        $driver = new static($executor, $response->getSessionID(), $returnedCapabilities);
+        if (!$w3c_compliant = isset($value['capabilities'])) {
+            $executor->disableW3CCompliance();
+        }
+
+        $returnedCapabilities = new DesiredCapabilities($w3c_compliant ? $value['capabilities'] : $value);
+
+        $driver = new static($executor, $response->getSessionID(), $returnedCapabilities, $w3c_compliant);
 
         return $driver;
     }
@@ -141,6 +170,7 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
      * @param string $session_id The existing session id
      * @param int|null $connection_timeout_in_ms Set timeout for the connect phase to remote Selenium WebDriver server
      * @param int|null $request_timeout_in_ms Set the maximum time of a request to remote Selenium WebDriver server
+     * @param bool $w3c_compliant false to use the legacy JsonWire protocol, true for the W3C WebDriver spec
      * @return static
      */
     public static function createBySessionID(
@@ -149,7 +179,9 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
         $connection_timeout_in_ms = null,
         $request_timeout_in_ms = null
     ) {
-        $executor = new HttpCommandExecutor($selenium_server_url);
+        // BC layer to not break the method signature
+        $w3c_compliant = func_num_args() > 3 ? func_get_arg(3) : false;
+        $executor = new HttpCommandExecutor($selenium_server_url, null, null);
         if ($connection_timeout_in_ms !== null) {
             $executor->setConnectionTimeout($connection_timeout_in_ms);
         }
@@ -157,7 +189,7 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
             $executor->setRequestTimeout($request_timeout_in_ms);
         }
 
-        return new static($executor, $session_id);
+        return new static($executor, $session_id, null, $w3c_compliant);
     }
 
     /**
@@ -181,13 +213,12 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
      */
     public function findElement(WebDriverBy $by)
     {
-        $params = ['using' => $by->getMechanism(), 'value' => $by->getValue()];
         $raw_element = $this->execute(
             DriverCommand::FIND_ELEMENT,
-            $params
+            JsonWireCompat::getUsing($by, $this->w3cCompliant)
         );
 
-        return $this->newElement($raw_element['ELEMENT']);
+        return $this->newElement(JsonWireCompat::getElement($raw_element));
     }
 
     /**
@@ -199,15 +230,14 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
      */
     public function findElements(WebDriverBy $by)
     {
-        $params = ['using' => $by->getMechanism(), 'value' => $by->getValue()];
         $raw_elements = $this->execute(
             DriverCommand::FIND_ELEMENTS,
-            $params
+            JsonWireCompat::getUsing($by, $this->w3cCompliant)
         );
 
         $elements = [];
         foreach ($raw_elements as $raw_element) {
-            $elements[] = $this->newElement($raw_element['ELEMENT']);
+            $elements[] = $this->newElement(JsonWireCompat::getElement($raw_element));
         }
 
         return $elements;
@@ -381,7 +411,7 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
      */
     public function manage()
     {
-        return new WebDriverOptions($this->getExecuteMethod());
+        return new WebDriverOptions($this->getExecuteMethod(), $this->w3cCompliant);
     }
 
     /**
@@ -412,7 +442,7 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
     public function getMouse()
     {
         if (!$this->mouse) {
-            $this->mouse = new RemoteMouse($this->getExecuteMethod());
+            $this->mouse = new RemoteMouse($this->getExecuteMethod(), $this->w3cCompliant);
         }
 
         return $this->mouse;
@@ -523,7 +553,7 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
      */
     public static function getAllSessions($selenium_server_url = 'http://localhost:4444/wd/hub', $timeout_in_ms = 30000)
     {
-        $executor = new HttpCommandExecutor($selenium_server_url);
+        $executor = new HttpCommandExecutor($selenium_server_url, null, null);
         $executor->setConnectionTimeout($timeout_in_ms);
 
         $command = new WebDriverCommand(
@@ -553,6 +583,15 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
     }
 
     /**
+     * @internal
+     * @return bool
+     */
+    public function isW3cCompliant()
+    {
+        return $this->w3cCompliant;
+    }
+
+    /**
      * Prepare arguments for JavaScript injection
      *
      * @param array $arguments
@@ -563,9 +602,11 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
         $args = [];
         foreach ($arguments as $key => $value) {
             if ($value instanceof WebDriverElement) {
-                $args[$key] = ['ELEMENT' => $value->getID()];
+                $args[$key] = [
+                    $this->w3cCompliant ? JsonWireCompat::WEB_DRIVER_ELEMENT_IDENTIFIER : 'ELEMENT' => $value->getID(),
+                ];
             } else {
-                if (is_array($value)) {
+                if (\is_array($value)) {
                     $value = $this->prepareScriptArguments($value);
                 }
                 $args[$key] = $value;
@@ -595,7 +636,7 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
      */
     protected function newElement($id)
     {
-        return new RemoteWebElement($this->getExecuteMethod(), $id);
+        return new RemoteWebElement($this->getExecuteMethod(), $id, $this->w3cCompliant);
     }
 
     /**
@@ -611,7 +652,7 @@ class RemoteWebDriver implements WebDriver, JavaScriptExecutor, WebDriverHasInpu
             return new DesiredCapabilities();
         }
 
-        if (is_array($desired_capabilities)) {
+        if (\is_array($desired_capabilities)) {
             return new DesiredCapabilities($desired_capabilities);
         }
 

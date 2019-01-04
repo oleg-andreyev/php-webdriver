@@ -8,3 +8,5 @@ parameters:
 		- '#Call to an undefined method Facebook\\WebDriver\\WebDriver::getTouch\(\)#'
 		- '#Call to an undefined method Facebook\\WebDriver\\WebDriverElement::getCoordinates\(\)#'
 		- '#Call to an undefined method Facebook\\WebDriver\\WebDriverElement::equals\(\)#'
+		# BC layer
+		- '#PHPDoc tag @param references unknown parameter \$w3c_compliant#'
