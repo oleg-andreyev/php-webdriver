@@ -48,7 +48,9 @@ class ChromeDriver extends RemoteWebDriver
             null,
             DriverCommand::NEW_SESSION,
             [
-                'desiredCapabilities' => $desired_capabilities->toArray(),
+                'capabilities' => [
+                    'alwaysMatch' => $desired_capabilities->toArray()
+                ],
             ]
         );
         $response = $this->executor->execute($command);

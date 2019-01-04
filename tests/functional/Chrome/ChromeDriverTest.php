@@ -45,6 +45,8 @@ class ChromeDriverTest extends TestCase
 
     public function testShouldStartChromeDriver()
     {
+        $this->markTestSkipped();
+
         // The createDefaultService() method expect path to the executable to be present in the environment variable
         putenv(ChromeDriverService::CHROME_DRIVER_EXE_PROPERTY . '=' . getenv('CHROMEDRIVER_PATH'));
 

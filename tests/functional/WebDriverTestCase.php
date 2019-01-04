@@ -57,6 +57,9 @@ class WebDriverTestCase extends TestCase
                 $chromeOptions = new ChromeOptions();
                 // --no-sandbox is a workaround for Chrome crashing: https://github.com/SeleniumHQ/selenium/issues/4961
                 $chromeOptions->addArguments(['--headless', 'window-size=1024,768', '--no-sandbox']);
+                if (getenv('W3C') === '1') {
+                    $chromeOptions->setExperimentalOption('w3c', true);
+                }
                 $this->desiredCapabilities->setCapability(ChromeOptions::CAPABILITY, $chromeOptions);
             } elseif (getenv('GECKODRIVER') === '1') {
                 $this->serverUrl = 'http://localhost:4444';

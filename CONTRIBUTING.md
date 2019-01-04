@@ -48,9 +48,15 @@ simply set the `BROWSER_NAME` environment variable:
     export BROWSER_NAME="firefox"
     ./vendor/bin/phpunit --testsuite functional
 
-To test with Geckodriver, [download](https://github.com/mozilla/geckodriver/releases) and start the server, then run:
+To test with ChromeDriver (JsonWire or W3C), [download](http://chromedriver.chromium.org/downloads) and start the server, then run:
 
-    export GECKODRIVER=1
+    export W3C=1 # or W3C=0, if you don't want W3C specification
+    export BROWSER_NAME=chrome
+    ./vendor/bin/phpunit --testsuite functional
+    
+To test with Geckodriver (W3C), [download](https://github.com/mozilla/geckodriver/releases) and start the server, then run:
+
+    export W3C=1
     export BROWSER_NAME=firefox
     ./vendor/bin/phpunit --testsuite functional
 

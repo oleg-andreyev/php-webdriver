@@ -77,7 +77,7 @@ class RemoteWebDriverTest extends WebDriverTestCase
      */
     public function testShouldGetAllSessions()
     {
-        if (getenv('GECKODRIVER') === '1') {
+        if (getenv('W3C') === '1') {
             $this->markTestSkipped('"getAllSessions" is not supported by the W3C specification');
         }
 
@@ -98,7 +98,7 @@ class RemoteWebDriverTest extends WebDriverTestCase
      */
     public function testShouldQuitAndUnsetExecutor()
     {
-        if (getenv('GECKODRIVER') === '1') {
+        if (getenv('W3C') === '1') {
             $this->markTestSkipped('"getAllSessions" is not supported by the W3C specification');
         }
 
