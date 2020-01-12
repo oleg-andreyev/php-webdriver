@@ -218,7 +218,6 @@ class DesiredCapabilitiesTest extends TestCase
                 [
                     'goog:chromeOptions' => [
                         'args' => ['--headless'],
-                        'binary' => '',
                     ],
                 ],
             ],
@@ -233,7 +232,6 @@ class DesiredCapabilitiesTest extends TestCase
                 [
                     'goog:chromeOptions' => [
                         'args' => ['--headless', 'window-size=1024,768'],
-                        'binary' => '',
                         'debuggerAddress' => '127.0.0.1:38947',
                     ],
                 ],
