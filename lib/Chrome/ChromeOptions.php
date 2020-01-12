@@ -136,15 +136,15 @@ class ChromeOptions
     {
         $options = $this->experimentalOptions;
 
+        if (!empty($this->binary)) {
+            $options['binary'] = $this->binary;
+        }
+
         // The selenium server expects a 'dictionary' instead of a 'list' when
         // reading the chrome option. However, an empty array in PHP will be
         // converted to a 'list' instead of a 'dictionary'. To fix it, we always
-        // set the 'binary' to avoid returning an empty array.
-        $options['binary'] = $this->binary;
-
-        if (!empty($this->arguments)) {
-            $options['args'] = $this->arguments;
-        }
+        // set the 'args' to avoid returning an empty array.
+        $options['args'] = $this->arguments;
 
         if (!empty($this->extensions)) {
             $options['extensions'] = $this->extensions;
